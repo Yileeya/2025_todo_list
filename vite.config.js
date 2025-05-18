@@ -29,7 +29,7 @@ export default defineConfig({
       extensions: ['vue'],
       directoryAsNamespace: true,
       dts: './types/components.d.ts',
-      resolvers: [ElementPlusResolver()],
+      resolvers: [ElementPlusResolver({ importStyle: 'sass' })],
     }),
   ],
   resolve: {
@@ -37,4 +37,11 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        additionalData: '@use "@/assets/scss/element-theme.scss" as *;'
+      }
+    }
+  }
 })
