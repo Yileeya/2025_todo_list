@@ -1,0 +1,48 @@
+html {
+  min-height: 100vh;
+  font-size: 20px;
+  font-family: 'Microsoft JhengHei', 'PingFang TC', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  margin: 0;
+}
+
+body {
+  background-color: #e0e0e0;
+
+  h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+  }
+
+  .container {
+    max-width: 1280px;
+    margin: 30px auto;
+  }
+}
+
+.customize-table {
+  width: 100%;
+  margin: 15px 0;
+  text-align: left;
+
+  thead {
+    background-color: var(--el-color-primary);
+    color: var(--el-bg-color);
+  }
+
+  tr {
+    th, td {
+      padding: 5px 10px;
+    }
+  }
+
+  tbody {
+    tr:nth-child(even) {
+      background-color: #c7c7c7;
+    }
+  }
+}
+
+.el-tag {
+  &__content {
+    font-size: 0.7rem;
+  }
+}
