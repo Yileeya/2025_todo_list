@@ -1,11 +1,12 @@
 <script setup>
 import {showMessage} from '@/utils/message.js';
-import {getTodos, deleteTodo} from '@/apis/todos.js';
+import {getTodos, deleteTodo, getState} from '@/apis/todos.js';
 import {useUIUXStore} from '@/stores/uiux.js';
 
 const { setLoading } = useUIUXStore();
 
 const todos = ref([]);
+const state = ref([]);
 
 // region dialog 相關
 const defaultTodo = {
@@ -49,7 +50,16 @@ async function fetchTodos() {
   setLoading(false);
 }
 
+async function fetchState() {
+  try {
+    state.value = await getState();
+  } catch (err) {
+    showMessage('error', '取得state列表資料失敗！');
+  }
+}
+
 fetchTodos();
+fetchState();
 </script>
 
 <template>
@@ -78,7 +88,7 @@ fetchTodos();
         <td>{{ todo.content }}</td>
         <td>{{ todo.due_date }}</td>
         <td>
-          <TodoListStatusTag :status-id="todo.state_id"/>
+          <TodoListStatusTag :status-id="todo.state_id" :state-options="state"/>
         </td>
         <td>
           <el-button type="primary" @click="openTodoDialog(todo)">編輯</el-button>
@@ -88,6 +98,7 @@ fetchTodos();
       </tbody>
     </table>
     <TodoListTodoDialog v-model="todoDialog.show" :todo="todoDialog.todo"
+                        :state-options="state"
                         @refresh="fetchTodos"/>
   </div>
 </template>

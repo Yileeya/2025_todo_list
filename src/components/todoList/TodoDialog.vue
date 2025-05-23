@@ -14,6 +14,11 @@ const { todo } = defineProps({
       state_id: 1
     }),
     required: true
+  },
+  stateOptions: {
+    type: Array,
+    default: () => [],
+    required: true
   }
 });
 const emits = defineEmits(['refresh']);
@@ -101,7 +106,7 @@ function resetFormData() {
         </el-form-item>
 
         <el-form-item label="狀態">
-          <TodoListStatusSelect v-model="form.state_id"/>
+          <TodoListStatusSelect v-model="form.state_id" :options="stateOptions"/>
         </el-form-item>
       </el-form>
     </div>

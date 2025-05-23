@@ -1,18 +1,23 @@
 <script setup>
-import {statusDemo} from '@/demo/todoDemo.js';
-
 const stateId = defineModel();
 
-const statusOptions = ref(statusDemo);
+defineProps({
+  options: {
+    type: Array,
+    default: () => [],
+    required: true
+  }
+});
 </script>
 
 <template>
   <el-select
       v-model="stateId"
       placeholder="請選擇"
+      :disabled="!options.length"
   >
     <el-option
-        v-for="item in statusOptions"
+        v-for="item in options"
         :key="`status_${item.id}`"
         :label="item.name"
         :value="item.id"
