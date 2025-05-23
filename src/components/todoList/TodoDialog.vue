@@ -1,5 +1,6 @@
 <script setup>
 import {showMessage} from '@/utils/message.js';
+import {getTodo, postTodo, putTodo} from '@/apis/todos.js';
 
 const show = defineModel();
 
@@ -15,7 +16,7 @@ const { todo } = defineProps({
     required: true
   }
 });
-const emits = defineEmits(['submit']);
+const emits = defineEmits(['refresh']);
 
 const form = ref({
   id: 0,
@@ -24,25 +25,56 @@ const form = ref({
   state_id: 1
 });
 
+const loading = ref(false);
+const sending = ref(false);
+
 function openDialog() {
-  form.value = { ...todo };
+  if (!todo.id) { // 代表新增
+    resetFormData();
+  } else {
+    fetchTodo();
+  }
 }
 
-function closeDialog() {
-  form.value = {
-    id: 0,
-    content: '',
-    due_date: '',
-    state_id: 1
-  };
+async function fetchTodo() {
+  loading.value = true;
+  try {
+    const res = await getTodo(todo.id);
+    form.value = res.data;
+  } catch (err) {
+    resetFormData();
+    showMessage('error', '取得待辦清單失敗！');
+  }
+  loading.value = false;
 }
 
-function submitHandler() {
+async function submitHandler() {
   if (!form.value.content || !form.value.due_date) {
     showMessage('error', '請填寫待辦事項和截止日期');
     return;
   }
-  emits('submit', form.value);
+
+  sending.value = true;
+  try {
+    if (!todo.id) await postTodo(form.value);
+    else await putTodo(todo.id, form.value);
+
+    showMessage('success', `${todo.id ? '更新' : '新增'}待辦清單成功！`);
+    emits('refresh');
+    show.value = false;
+  } catch (error) {
+    console.log('error', error);
+    showMessage('error', `${todo.id ? '更新' : '新增'}待辦清單失敗！`);
+  }
+  sending.value = false;
+}
+
+function resetFormData() {
+  form.value = {
+    content: '',
+    due_date: '',
+    state_id: 1
+  };
 }
 </script>
 
@@ -50,8 +82,8 @@ function submitHandler() {
   <el-dialog v-model="show" width="500"
              :title="`${form.id ? '編輯' : '新增'}待辦事項`"
              :close-on-click-modal="false" :close-on-press-escape="false"
-             @open="openDialog" @close="closeDialog">
-    <div class="content">
+             @open="openDialog" @close="resetFormData">
+    <div class="content" v-loading="loading">
       <el-form label-width="auto">
         <el-form-item label="待辦事項">
           <el-input v-model="form.content" placeholder="請輸入待辦事項"/>
@@ -77,7 +109,7 @@ function submitHandler() {
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="show = false">取消</el-button>
-        <el-button type="primary" @click="submitHandler">確認</el-button>
+        <el-button :disabled="sending || loading" type="primary" @click="submitHandler">確認</el-button>
       </div>
     </template>
   </el-dialog>

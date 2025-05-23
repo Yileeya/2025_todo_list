@@ -1,8 +1,11 @@
 <script setup>
-import {todosDemo} from '@/demo/todoDemo.js';
 import {showMessage} from '@/utils/message.js';
+import {getTodos, deleteTodo} from '@/apis/todos.js';
+import {useUIUXStore} from '@/stores/uiux.js';
 
-const todos = ref(todosDemo);
+const { setLoading } = useUIUXStore();
+
+const todos = ref([]);
 
 // region dialog 相關
 const defaultTodo = {
@@ -24,22 +27,29 @@ function openTodoDialog(todo) {
 }
 // endregion
 
-function updateTodo(newTodo) {
-  const index = todos.value.findIndex(todo => todo.id === newTodo.id);
-  if (index !== -1) {
-    todos.value[index] = { ...newTodo };
-    showMessage('success', '更新成功！');
-  } else {
-    todos.value.shift({ ...newTodo });
-    showMessage('success', '新增成功！');
+async function deleteTodoHandler(id) {
+  try {
+    await deleteTodo(id);
+
+    todos.value = todos.value.filter(todo => todo.id !== id);
+    showMessage('success', '刪除成功！');
+  } catch (err) {
+    showMessage('error', '刪除失敗！');
   }
-  todoDialog.value.show = false;
 }
 
-function deleteTodo(id) {
-  todos.value = todos.value.filter(todo => todo.id !== id);
-  showMessage('success', '刪除成功！');
+async function fetchTodos() {
+  setLoading(true);
+  try {
+    const res = await getTodos();
+    todos.value = res.data;
+  } catch (err) {
+    showMessage('error', '取得待辦清單失敗！');
+  }
+  setLoading(false);
 }
+
+fetchTodos();
 </script>
 
 <template>
@@ -60,6 +70,9 @@ function deleteTodo(id) {
       </tr>
       </thead>
       <tbody>
+      <tr v-if="!todos.length">
+        查無資料
+      </tr>
       <tr v-for="(todo,idx) in todos" :key="todo.id">
         <td>{{ idx + 1 }}</td>
         <td>{{ todo.content }}</td>
@@ -69,13 +82,13 @@ function deleteTodo(id) {
         </td>
         <td>
           <el-button type="primary" @click="openTodoDialog(todo)">編輯</el-button>
-          <el-button type="danger" @click="deleteTodo(todo.id)">刪除</el-button>
+          <el-button type="danger" @click="deleteTodoHandler(todo.id)">刪除</el-button>
         </td>
       </tr>
       </tbody>
     </table>
     <TodoListTodoDialog v-model="todoDialog.show" :todo="todoDialog.todo"
-                        @submit="updateTodo"/>
+                        @refresh="fetchTodos"/>
   </div>
 </template>
 
